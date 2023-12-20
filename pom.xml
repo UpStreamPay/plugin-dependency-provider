@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>plugin-dependency-provider</artifactId>
+  <groupId>com.decathlon.payment</groupId>
+  <version>1.0.0</version>
+
+  <properties>
+	<maven.compiler.source>${java.version}</maven.compiler.source>
+	<maven.compiler.target>${java.version}</maven.compiler.target>
+	<maven.bundle.plugin.version>6.3.1</maven.bundle.plugin.version>
+  </properties>
+
+  <dependencies>
+	<dependency>
+	  <groupId>org.osgi</groupId>
+	  <artifactId>org.osgi.service.component.annotations</artifactId>
+	  <version>1.5.0</version>
+	  <scope>provided</scope>
+	</dependency>
+  </dependencies>
+
+  <build>
+	<plugins>
+	  <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-compiler-plugin</artifactId>
+		<configuration>
+		  <source>${java.version}</source>
+		  <target>${java.version}</target>
+		</configuration>
+	  </plugin>
+	  <plugin>
+		<groupId>biz.aQute.bnd</groupId>
+		<artifactId>bnd-maven-plugin</artifactId>
+		<version>${maven.bundle.plugin.version}</version>
+		<executions>
+		  <execution>
+			<goals>
+			  <goal>bnd-process</goal>
+			</goals>
+		  </execution>
+		</executions>
+		<configuration>
+		  <bnd><![CDATA[
+           Provide-Capability:osgi.contract;osgi.contract=JavaEL;version:Version=5.0.0;uses:="jakarta.el"\
+           ,osgi.contract;osgi.contract=JakartaExpressionLanguage;version:Version=5.0.0;uses:="jakarta.el"
+          ]]></bnd>
+		</configuration>
+	  </plugin>
+	  <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-jar-plugin</artifactId>
+		<configuration>
+		  <archive>
+			<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+		  </archive>
+		  <outputDirectory>target</outputDirectory>
+		</configuration>
+	  </plugin>
+	</plugins>
+  </build>
+
+</project>

@@ -1,0 +1,15 @@
+name: Pull Request Lint
+
+on:
+  pull_request:
+    types: ["opened", "edited", "reopened", "synchronize"]
+    branches:
+      - develop
+      - release-*
+
+jobs:
+  verify-pr:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-verify-pr.yaml@reusable-v0
+    with:
+      enable-issue-check: true
+      enable-conventionnal-commit-check: true

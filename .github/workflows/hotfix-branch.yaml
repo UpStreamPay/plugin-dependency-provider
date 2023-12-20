@@ -1,0 +1,20 @@
+name: Hotfix branch Manager
+
+on:
+  push:
+    branches:
+      - hotfix/*
+
+jobs:
+  retrieve-branch-name:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-extract-from-ref.yaml@reusable-v0
+
+  create-hotfix-prs:
+    needs: ["retrieve-branch-name"]
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-open-prs.yaml@reusable-v0
+    with:
+      type: hotfix
+      branch-name: ${{ needs.retrieve-branch-name.outputs.current-branch }}
+      pr-main: true
+      pr-develop: false
+      pr-draft: true

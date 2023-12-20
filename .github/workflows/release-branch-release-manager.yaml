@@ -1,0 +1,35 @@
+name: Release branch - Release Manager
+
+on:
+  push:
+    branches:
+      - "release-v[0-9]+.[0-9]+"
+
+jobs:
+  release-manager:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/release-manager.yaml@reusable-v0
+    with:
+      pre-release: true
+      pre-commit: scripts/cc-pre-commit.js
+    secrets:
+      GITHUB_ACCESS_TOKEN: ${{ secrets.USP_GITHUB_ADMIN_ACCES_TOKEN }}
+
+  comment-release-pr:
+    needs: ["release-manager"]
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-comment-release-pr-new-rc.yaml@reusable-v0
+    if: needs.release-manager.outputs.skipped == 'false'
+    with:
+      tag: ${{ needs.release-manager.outputs.tag }}
+      changelog: ${{ needs.release-manager.outputs.clean-changelog }}
+
+  send-slack-message:
+    needs: ["release-manager"]
+    if: needs.release-manager.outputs.skipped == 'false'
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-new-release-slack-message.yaml@reusable-v0
+    with:
+      channel-id: ${{ vars.SLACK_NEW_RELEASE_PLUGIN_CHANNEL }}
+      version: ${{ needs.release-manager.outputs.version }}
+      type: Release candidate
+      release-url: ${{ needs.release-manager.outputs.release-url }}
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.USP_SLACK_TOKEN }}

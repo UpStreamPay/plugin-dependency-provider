@@ -1,0 +1,23 @@
+name: Open PR between main and develop
+
+###
+### New version develop updater
+###
+
+# The aim of this workflow is to create a pull request between develop and main in order to bring back
+# release commit (hotfix or new release) to develop.
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  extract-tag:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-extract-from-ref.yaml@reusable-v0
+  
+  create-pr:
+    needs: ["extract-tag"]
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-open-new-release-develop-pr.yaml@reusable-v0
+    with:
+      release-version: ${{ needs.extract-tag.outputs.tag }}

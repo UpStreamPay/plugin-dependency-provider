@@ -1,0 +1,20 @@
+name: Feat branch Manager
+
+on:
+  push:
+    branches:
+      - feat/*
+
+jobs:
+  retrieve-branch-name:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-extract-from-ref.yaml@reusable-v0
+
+  create-feat-prs:
+    needs: ["retrieve-branch-name"]
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-open-prs.yaml@reusable-v0
+    with:
+      type: feat
+      branch-name: ${{ needs.retrieve-branch-name.outputs.current-branch }}
+      pr-main: false
+      pr-develop: true
+      pr-draft: false

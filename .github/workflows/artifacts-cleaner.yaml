@@ -1,0 +1,31 @@
+name: Artifacts cleaner
+
+###
+### Artifacts cleaner
+###
+
+# The aim of this workflow is to delete artifacts that have been created during the release phase.
+# RC artifacts
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  extract-tag:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-extract-from-ref.yaml@reusable-v0
+    with:
+      strip-tag-prefix: 'v'
+  
+  clean-artifacts:
+    needs: ["extract-tag"]
+    uses: UpstreamPay/usp-reusable-workflows/.github/workflows/delete-gar-artifacts.yaml@reusable-v0
+    with:
+      gcp-registry-location: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_LOCATION }}
+      gcp-registry-name: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_NAME }}
+      gcp-registry-type: package
+      gcp-filter: "name~${{ needs.extract-tag.outputs.tag }}-rc*"
+      artifact-id: ${{ vars.MAVEN_GROUP_ID }}:${{ vars.MAVEN_ARTIFACT_ID }}
+      workload-identity-provider: ${{ vars.GCP_DEV_PLUGINS_WORKLOAD_IDENTITY_PROVIDER }}
+      delete-service-account: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_SA_EMAIL }}

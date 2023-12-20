@@ -1,0 +1,46 @@
+name: Create preview
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  check-preview-comment:
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-check-preview-comment.yaml@reusable-v0
+
+  build-and-push:
+    needs: [check-preview-comment]
+    if: needs.check-preview-comment.outputs.triggered == 'true'
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/build-and-push-maven-gcp-gar-plugin.yaml@reusable-v0
+    with:
+      ref: ${{ needs.check-preview-comment.outputs.head-branch }}
+      java-version: "17"
+      java-distribution: "adopt"
+      profile: "dev-repository"
+      workload-identity-provider: ${{ vars.GCP_DEV_PLUGINS_WORKLOAD_IDENTITY_PROVIDER }}
+      service-account: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_SA_EMAIL }}
+      version: ${{ needs.check-preview-comment.outputs.tag }}
+      gar-maven-repository-name: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_NAME }}
+      gar-maven-location: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_LOCATION }}
+    secrets:
+      D4_GITHUB_PLUGIN_USERNAME: ${{ secrets.PLUGIN_D4_USERNAME }}
+      D4_GITHUB_PLUGIN_PASSWORD: ${{ secrets.PLUGIN_D4_PASSWORD }}
+
+  deploy-plugin:
+    needs: [check-preview-comment, build-and-push]
+    if: needs.check-preview-comment.outputs.triggered == 'true'
+    uses: UpStreamPay/usp-reusable-workflows/.github/workflows/utils-gitflow-deploy-plugin.yaml@reusable-v0
+    with:
+      gar-region: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_LOCATION }}
+      gar-project: ${{ vars.GCP_DEV_PLUGINS_PROJECT_ID }}
+      gar-repository: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_NAME }}
+      group-id: ${{ vars.MAVEN_GROUP_ID }}
+      artifact-id: ${{ vars.MAVEN_ARTIFACT_ID }}
+      version: ${{ needs.check-preview-comment.outputs.tag }}
+      bucket-name: ${{ vars.GCP_DEV_PLUGINS_BUCKET_PLUGINS_NAME }}
+      bucket-path: plugins/
+      existing-bucket-path: plugins-archives/
+      pull-gar-service-account: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_SA_EMAIL }}
+      pull-gar-workload-identity-provider: ${{ vars.GCP_DEV_PLUGINS_WORKLOAD_IDENTITY_PROVIDER }}
+      push-bucket-service-account: ${{ vars.GCP_DEV_PLUGINS_PUSH_BUCKET_PLUGINS_SA_EMAIL }}
+      push-bucket-workload-identity-provider:  ${{ vars.GCP_DEV_PLUGINS_WORKLOAD_IDENTITY_PROVIDER }}

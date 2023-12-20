@@ -1,0 +1,17 @@
+name: Delete preview
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  clean-artifacts:
+    uses: UpstreamPay/usp-reusable-workflows/.github/workflows/delete-gar-artifacts.yaml@reusable-v0
+    with:
+      gcp-registry-location: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_LOCATION }}
+      gcp-registry-name: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_NAME }}
+      gcp-registry-type: package
+      gcp-filter: "name~pr${{ github.event.number }}-*"
+      artifact-id: ${{ vars.MAVEN_GROUP_ID }}:${{ vars.MAVEN_ARTIFACT_ID }}
+      workload-identity-provider: ${{ vars.GCP_DEV_PLUGINS_WORKLOAD_IDENTITY_PROVIDER }}
+      delete-service-account: ${{ vars.GCP_DEV_PLUGINS_MAVEN_REGISTRY_SA_EMAIL }}
